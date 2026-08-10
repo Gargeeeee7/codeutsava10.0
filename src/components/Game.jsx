@@ -139,6 +139,7 @@ function inRedZone(r, c) {
 export default function Game({ onComplete, onSkip }) {
   const canvasRef = useRef(null);
   const audioRef = useRef(null);
+  const keysRef = useRef({}); // shared so on-screen buttons can control movement
   const [sanity, setSanity] = useState(100);
   const [status, setStatus] = useState("The fluorescents hum above you...");
   const [won, setWon] = useState(false);
@@ -189,7 +190,7 @@ export default function Game({ onComplete, onSkip }) {
     const ctx = canvas.getContext("2d");
 
     const player = { x: 26, y: 4, speed: 0.105 };
-    const keys = {};
+    const keys = keysRef.current;
     const scare = { active: false, type: null, timer: 0 };
     let gameState = "playing";
     let flickerPhase = 0;
@@ -386,15 +387,10 @@ export default function Game({ onComplete, onSkip }) {
               if (openS) ctx.fillRect(sx, sy + TILE - 3, TILE, 3);
               if (openW) ctx.fillRect(sx, sy, 3, TILE);
               if (openE) ctx.fillRect(sx + TILE - 3, sy, 3, TILE);
-              if (openS) {
-                ctx.fillStyle = "#3a2a28";
-                ctx.fillRect(sx, sy + TILE - 5, TILE, 5);
-              }
             }
           } else if (cell === 2) {
-            // EXIT — blood-amber glow (site palette)
-            ctx.fillStyle = "#130f0e";
-            ctx.fillRect(sx, sy, TILE, TILE);
+            // EXIT tile
+            ctx.drawImage(carpet, sx, sy);
             const pulse = 0.5 + Math.sin(time * 0.12) * 0.3;
             ctx.fillStyle = `rgba(194,36,47,${pulse})`;
             ctx.fillRect(sx + 6, sy + 4, TILE - 12, TILE - 8);
@@ -674,6 +670,69 @@ export default function Game({ onComplete, onSkip }) {
         }}
       >
         WASD / ARROWS — IF THE LIGHTS GO OUT, KEEP MOVING
+      </div>
+
+      {/* On-screen movement controls (mobile / touch) */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 70,
+          left: 20,
+          zIndex: 30,
+          display: "grid",
+          gridTemplateAreas: `
+            ". up ."
+            "left . right"
+            ". down ."
+          `,
+          gridTemplateColumns: "48px 48px 48px",
+          gridTemplateRows: "48px 48px 48px",
+          gap: 6,
+          userSelect: "none",
+          touchAction: "none",
+        }}
+      >
+        {[
+          { area: "up", key: "arrowup", label: "▲" },
+          { area: "left", key: "arrowleft", label: "◀" },
+          { area: "right", key: "arrowright", label: "▶" },
+          { area: "down", key: "arrowdown", label: "▼" },
+        ].map(({ area, key, label }) => (
+          <button
+            key={key}
+            style={{
+              gridArea: area,
+              width: 48,
+              height: 48,
+              borderRadius: 8,
+              border: "1px solid rgba(194,36,47,0.35)",
+              background: "rgba(20,14,14,0.85)",
+              color: "var(--bone)",
+              fontSize: 18,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              WebkitTapHighlightColor: "transparent",
+            }}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              keysRef.current[key] = true;
+            }}
+            onPointerUp={() => {
+              keysRef.current[key] = false;
+            }}
+            onPointerLeave={() => {
+              keysRef.current[key] = false;
+            }}
+            onPointerCancel={() => {
+              keysRef.current[key] = false;
+            }}
+            aria-label={`Move ${area}`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {won && (

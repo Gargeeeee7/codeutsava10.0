@@ -207,7 +207,7 @@ export default function Intro({ onEnter }) {
           position: "fixed",
           left: 0,
           right: 0,
-          bottom: "8vh",
+          bottom: "24vh",
           zIndex: 10,
           display: "flex",
           alignItems: "center",
