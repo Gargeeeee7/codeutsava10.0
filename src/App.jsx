@@ -3,10 +3,11 @@ import { AnimatePresence } from "framer-motion";
 import Background from "./components/Background.jsx";
 import Intro from "./components/Intro.jsx";
 import Game from "./components/Game.jsx";
+import Transition from "./components/Transition.jsx";
 import Landing from "./components/Landing.jsx";
 
 export default function App() {
-  const [stage, setStage] = useState("intro"); // "intro" -> "game" -> "landing"
+  const [stage, setStage] = useState("intro"); // intro -> game -> transition -> landing
 
   return (
     <div style={{ position: "relative", minHeight: "100vh" }}>
@@ -20,7 +21,10 @@ export default function App() {
 
       <AnimatePresence mode="wait">
         {stage === "intro" && <Intro key="intro" onEnter={() => setStage("game")} />}
-        {stage === "game" && <Game key="game" onComplete={() => setStage("landing")} />}
+        {stage === "game" && (
+          <Game key="game" onComplete={() => setStage("transition")} onSkip={() => setStage("landing")} />
+        )}
+        {stage === "transition" && <Transition key="transition" onComplete={() => setStage("landing")} />}
         {stage === "landing" && <Landing key="landing" />}
       </AnimatePresence>
     </div>

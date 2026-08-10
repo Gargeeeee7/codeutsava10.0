@@ -129,7 +129,7 @@ export default function Landing() {
         }}
       >
         <span className="hx-mono" style={{ letterSpacing: "0.15em", fontSize: 14, color: "var(--bone)" }}>
-          CODE<span style={{ color: "var(--blood-bright)" }}>UTSAVA</span>
+          CODE<span style={{ color: "var(--blood-bright)" }}>UTSAVA</span> X
         </span>
         <div className="hx-mono" style={{ display: "flex", gap: 28, fontSize: 12, letterSpacing: "0.08em", color: "var(--bone-dim)" }}>
           <a href="#rituals" style={{ textDecoration: "none" }}>Rituals</a>
@@ -167,11 +167,11 @@ export default function Landing() {
           </motion.p>
 
           <h1
-            data-text="CODEUTSAVA"
+            data-text="CODEUTSAVA X"
             className="hx-glitch hx-display"
             style={{ fontSize: "clamp(48px, 12vw, 140px)", margin: "18px 0 4px", color: "var(--bone)" }}
           >
-            CODEUTSAVA
+            CODEUTSAVA X
           </h1>
 
           <motion.p
@@ -342,7 +342,7 @@ export default function Landing() {
           <a href="#" aria-label="Email"><Mail size={18} color="var(--bone-dim)" /></a>
         </div>
         <p className="hx-mono" style={{ fontSize: 10.5, color: "var(--bone-dim)", opacity: 0.5, marginTop: 24, letterSpacing: "0.1em" }}>
-          © 2026 CODEUTSAVA — TURING CLUB OF PROGRAMMERS. ALL CURSES RESERVED.
+          © 2026 CODEUTSAVA X — TURING CLUB OF PROGRAMMERS. ALL CURSES RESERVED.
         </p>
       </section>
     </motion.div>
