@@ -1,0 +1,82 @@
+/* ── Button hover ─────────────────────────────────────── */
+.hx-btn {
+  position: relative;
+  overflow: hidden;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.25s ease,
+    transform 0.2s ease;
+}
+
+.hx-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 1px rgba(194, 36, 47, 0.45),
+    0 8px 24px rgba(194, 36, 47, 0.18),
+    0 0 18px rgba(194, 36, 47, 0.12);
+  border-color: rgba(194, 36, 47, 0.7);
+  color: var(--bone, #e7e5e4);
+}
+
+.hx-btn:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 0 0 1px rgba(194, 36, 47, 0.5);
+}
+
+/* ── Card / box hover ─────────────────────────────────── */
+.hx-card {
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.28s ease,
+    border-color 0.28s ease,
+    background 0.28s ease;
+}
+
+.hx-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(194, 36, 47, 0.28),
+    0 0 24px rgba(194, 36, 47, 0.1);
+  border-color: rgba(194, 36, 47, 0.4);
+}
+
+/* Glitchy cards get a stronger red edge on hover */
+.hx-card--glitchy:hover {
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(194, 36, 47, 0.45),
+    0 0 28px rgba(194, 36, 47, 0.18);
+}
+
+/* ── Nav text links ───────────────────────────────────── */
+nav a {
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+nav a:hover {
+  color: var(--bone, #e7e5e4) !important;
+  text-shadow: 0 0 12px rgba(194, 36, 47, 0.45);
+}
+
+/* ── Social icons in footer ───────────────────────────── */
+#pact a {
+  transition: transform 0.2s ease, filter 0.2s ease;
+  display: inline-flex;
+}
+
+#pact a:hover {
+  transform: translateY(-3px) scale(1.12);
+  filter: drop-shadow(0 0 6px rgba(194, 36, 47, 0.55));
+}
+
+/* ── FAQ accordion buttons ────────────────────────────── */
+.hx-card button {
+  transition: color 0.2s ease;
+}
+
+.hx-card button:hover {
+  color: var(--amber, #d4a017) !important;
+}

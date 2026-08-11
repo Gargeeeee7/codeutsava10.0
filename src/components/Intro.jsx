@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Sparkles, Volume2, VolumeX } from "lucide-react";
 import SpookyBackground from "./SpookyBackground.jsx";
+import { playClick } from "./landing/clickSound.js";
 
 const WISH_DURATION_MS = 60 * 60 * 1000; // 1 hour
 
@@ -14,9 +15,6 @@ function formatCountdown(ms) {
   return [h, m, s].map((n) => String(n).padStart(2, "0")).join(":");
 }
 
-// Full-screen gate. On "Enter", runs a tunnel-rush sequence that zooms
-// into the cave mouth, then hands off to the game stage.
-// Easter egg: the One Wish Willow above the title opens a wish modal.
 export default function Intro({ onEnter }) {
   const [exiting, setExiting] = useState(false);
   const [wishOpen, setWishOpen] = useState(false);
@@ -25,14 +23,17 @@ export default function Intro({ onEnter }) {
   const [wishEndsAt, setWishEndsAt] = useState(null);
   const [remaining, setRemaining] = useState(WISH_DURATION_MS);
   const [muted, setMuted] = useState(false);
-  const audioRef = useRef(null);
 
-  // Intro ambient — public/audio/intro-ambient.mp3
+  const ambientRef = useRef(null);
+  const willowRef = useRef(null);
+  const sweepRef = useRef(null);
+
+  // Ambient intro loop
   useEffect(() => {
     const audio = new Audio("/audio/intro-ambient.mp3");
     audio.loop = true;
     audio.volume = 0.4;
-    audioRef.current = audio;
+    ambientRef.current = audio;
 
     const tryPlay = () => {
       audio.play().catch(() => {});
@@ -50,23 +51,62 @@ export default function Intro({ onEnter }) {
     return () => {
       audio.pause();
       audio.src = "";
-      audioRef.current = null;
+      ambientRef.current = null;
       window.removeEventListener("pointerdown", unlock);
       window.removeEventListener("keydown", unlock);
     };
   }, []);
 
+  // Preload willow theme + terror sweep
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    audio.muted = muted;
-    if (!muted) audio.play().catch(() => {});
-  }, [muted]);
+    const willow = new Audio("/audio/one-wish-willow.mp3");
+    willow.loop = true;
+    willow.volume = 0.55;
+    willow.preload = "auto";
+    willowRef.current = willow;
 
-  // Stop intro music when leaving via tunnel
+    const sweep = new Audio("/audio/terror-sweep.mp3");
+    sweep.loop = false;
+    sweep.volume = 0.75;
+    sweep.preload = "auto";
+    sweepRef.current = sweep;
+
+    return () => {
+      willow.pause();
+      willow.src = "";
+      willowRef.current = null;
+      sweep.pause();
+      sweep.src = "";
+      sweepRef.current = null;
+    };
+  }, []);
+
+  // Mute sync
+  useEffect(() => {
+    if (typeof window !== "undefined") window.__hxMuted = muted;
+
+    const ambient = ambientRef.current;
+    if (ambient) {
+      ambient.muted = muted;
+      if (!muted) ambient.play().catch(() => {});
+    }
+
+    const willow = willowRef.current;
+    if (willow) {
+      willow.muted = muted;
+      if (!muted && wishOpen && !exiting) {
+        willow.play().catch(() => {});
+      }
+    }
+
+    const sweep = sweepRef.current;
+    if (sweep) sweep.muted = muted;
+  }, [muted, wishOpen, exiting]);
+
+  // Fade ambient on tunnel exit
   useEffect(() => {
     if (!exiting) return;
-    const audio = audioRef.current;
+    const audio = ambientRef.current;
     if (!audio) return;
     const fade = setInterval(() => {
       if (audio.volume > 0.05) {
@@ -79,7 +119,32 @@ export default function Intro({ onEnter }) {
     return () => clearInterval(fade);
   }, [exiting]);
 
-  // tick the 1-hour countdown while a wish is active
+  // Stop / fade willow when modal closes or exiting
+  useEffect(() => {
+    const willow = willowRef.current;
+    if (!willow) return;
+
+    if (exiting) {
+      const fade = setInterval(() => {
+        if (willow.volume > 0.05) {
+          willow.volume = Math.max(0, willow.volume - 0.08);
+        } else {
+          willow.pause();
+          willow.currentTime = 0;
+          clearInterval(fade);
+        }
+      }, 60);
+      return () => clearInterval(fade);
+    }
+
+    if (!wishOpen) {
+      willow.pause();
+      willow.currentTime = 0;
+      willow.volume = 0.55;
+    }
+  }, [wishOpen, exiting]);
+
+  // Wish countdown
   useEffect(() => {
     if (!wishSent || !wishEndsAt) return;
     const tick = () => {
@@ -93,8 +158,59 @@ export default function Intro({ onEnter }) {
 
   const handleEnter = () => {
     if (exiting || wishOpen) return;
+
+    playClick();
+
+    const sweep = sweepRef.current;
+    if (sweep && !muted) {
+      try {
+        sweep.currentTime = 0;
+        sweep.volume = 0.75;
+        sweep.play().catch(() => {});
+      } catch {
+        /* ignore */
+      }
+    }
+
+    const willow = willowRef.current;
+    if (willow) {
+      willow.pause();
+      willow.currentTime = 0;
+    }
+
     setExiting(true);
     setTimeout(onEnter, 1500);
+  };
+
+  const openWish = () => {
+    if (exiting) return;
+    setWishOpen(true);
+
+    const willow = willowRef.current;
+    if (willow && !muted) {
+      try {
+        willow.currentTime = 0;
+        willow.volume = 0.55;
+        willow.play().catch(() => {});
+      } catch {
+        /* ignore */
+      }
+    }
+
+    const ambient = ambientRef.current;
+    if (ambient) {
+      ambient.volume = Math.min(ambient.volume, 0.12);
+    }
+  };
+
+  const closeWish = () => {
+    setWishOpen(false);
+
+    const ambient = ambientRef.current;
+    if (ambient && !exiting) {
+      ambient.volume = 0.4;
+      if (!muted) ambient.play().catch(() => {});
+    }
   };
 
   const handleWishSubmit = (e) => {
@@ -148,18 +264,29 @@ export default function Intro({ onEnter }) {
         aria-hidden="true"
       />
       <SpookyBackground />
-      <div className="hx-intro-vignette" style={{ opacity: exiting ? 0 : 1, transition: "opacity 0.3s ease" }} />
+      <div
+        className="hx-intro-vignette"
+        style={{ opacity: exiting ? 0 : 1, transition: "opacity 0.3s ease" }}
+      />
 
       <motion.div
-        animate={exiting ? { opacity: 0, scale: 1.15, filter: "blur(6px)" } : { opacity: 1, scale: 1 }}
+        animate={
+          exiting
+            ? { opacity: 0, scale: 1.15, filter: "blur(6px)" }
+            : { opacity: 1, scale: 1 }
+        }
         transition={{ duration: 0.45, ease: "easeIn" }}
-        style={{ position: "relative", zIndex: 1, marginTop: "-35vh", pointerEvents: exiting ? "none" : "auto" }}
+        style={{
+          position: "relative",
+          zIndex: 1,
+          marginTop: "-35vh",
+          pointerEvents: exiting ? "none" : "auto",
+        }}
       >
-        {/* One Wish Willow — easter egg (PNG) */}
         <motion.button
           type="button"
           className="hx-willow"
-          onClick={() => setWishOpen(true)}
+          onClick={openWish}
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.95 }}
           title="One Wish Willow"
@@ -217,17 +344,24 @@ export default function Intro({ onEnter }) {
       >
         <div className="hx-heartbeat-glow" />
         <motion.button
+          type="button"
           className="hx-btn"
+          data-sfx
           onClick={handleEnter}
           whileTap={{ scale: 0.96 }}
-          style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 10 }}
+          style={{
+            position: "relative",
+            zIndex: 1,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+          }}
         >
           Dare to Enter ?
           <span className="hx-blink">▮</span>
         </motion.button>
       </motion.div>
 
-      {/* Make a Wish modal */}
       <AnimatePresence>
         {wishOpen && (
           <motion.div
@@ -236,7 +370,7 @@ export default function Intro({ onEnter }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            onClick={() => !wishSent && setWishOpen(false)}
+            onClick={() => !wishSent && closeWish()}
           >
             <motion.div
               className="hx-wish-modal"
@@ -252,7 +386,7 @@ export default function Intro({ onEnter }) {
               <button
                 type="button"
                 className="hx-wish-close"
-                onClick={() => setWishOpen(false)}
+                onClick={closeWish}
                 aria-label="Close"
               >
                 <X size={18} />
@@ -281,7 +415,10 @@ export default function Intro({ onEnter }) {
                   animate={{ opacity: 1, y: 0 }}
                 >
                   <p className="hx-wish-thanks-line">
-                    <Sparkles size={16} style={{ marginRight: 8, verticalAlign: "middle" }} />
+                    <Sparkles
+                      size={16}
+                      style={{ marginRight: 8, verticalAlign: "middle" }}
+                    />
                     Your wish has been taken by the wind…
                   </p>
                   <p className="hx-wish-timer-label">
@@ -306,7 +443,11 @@ export default function Intro({ onEnter }) {
                     maxLength={120}
                     autoFocus
                   />
-                  <button type="submit" className="hx-wish-submit" disabled={!wish.trim()}>
+                  <button
+                    type="submit"
+                    className="hx-wish-submit"
+                    disabled={!wish.trim()}
+                  >
                     Crack &amp; send
                   </button>
                 </form>
@@ -316,7 +457,6 @@ export default function Intro({ onEnter }) {
         )}
       </AnimatePresence>
 
-      {/* Mute — bottom right */}
       <button
         type="button"
         className="hx-btn"
@@ -342,7 +482,6 @@ export default function Intro({ onEnter }) {
         {muted ? "Sound Off" : "Sound On"}
       </button>
 
-      {/* Tunnel rush */}
       <AnimatePresence>
         {exiting && (
           <>
