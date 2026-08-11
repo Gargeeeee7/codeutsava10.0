@@ -921,3 +921,94 @@ a {
 .hx-willow-img--modal {
   width: 160px;
 }
+
+/* ---------- glass smudge ---------- */
+
+.hx-glass-smudge {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 55; /* under grain (60), above vignette (59) / scanline (58) — tweak if needed */
+  overflow: hidden;
+}
+
+.hx-smudge {
+  position: absolute;
+  border-radius: 50% 40% 60% 45%;
+  background:
+    radial-gradient(ellipse 60% 50% at 40% 35%, rgba(236, 227, 210, 0.35), transparent 70%),
+    radial-gradient(ellipse 50% 60% at 65% 60%, rgba(168, 154, 134, 0.2), transparent 65%);
+  filter: blur(8px);
+  mix-blend-mode: soft-light;
+}
+
+.hx-smudge--print {
+  border-radius: 45% 50% 40% 55%;
+  background:
+    /* rough fingerprint rings */
+    radial-gradient(circle at 50% 30%, transparent 18%, rgba(236, 227, 210, 0.25) 20%, transparent 22%),
+    radial-gradient(circle at 50% 30%, transparent 28%, rgba(236, 227, 210, 0.2) 30%, transparent 32%),
+    radial-gradient(circle at 50% 30%, transparent 38%, rgba(168, 154, 134, 0.18) 40%, transparent 42%),
+    radial-gradient(ellipse 40% 55% at 50% 55%, rgba(236, 227, 210, 0.15), transparent 70%);
+  filter: blur(2.5px);
+}
+
+/* optional very slow drift so smudges feel alive */
+@keyframes hx-smudge-drift {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(3px, -2px); }
+}
+.hx-glass-smudge .hx-smudge {
+  animation: hx-smudge-drift 18s ease-in-out infinite;
+}
+
+/* ---------- sigil flash layer ---------- */
+
+.hx-sigil-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 61; /* above grain so the flash reads clearly */
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hx-glass-smudge .hx-smudge {
+    animation: none !important;
+  }
+  .hx-sigil-layer {
+    display: none !important;
+  }
+}
+
+/* ---------- Thing cursor ---------- */
+
+.hx-thing-cursor {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  /* shift so the fingertip is under the real pointer */
+  transform: translate(-8px, -36px);
+  transition: opacity 0.12s ease, transform 0.08s ease;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.65));
+  will-change: left, top;
+}
+
+.hx-thing-cursor.is-click {
+  transform: translate(-8px, -36px) scale(0.9);
+}
+
+body,
+body * {
+  cursor: none !important;
+}
+
+@media (pointer: coarse) {
+  .hx-thing-cursor {
+    display: none !important;
+  }
+  body,
+  body * {
+    cursor: auto !important;
+  }
+}
