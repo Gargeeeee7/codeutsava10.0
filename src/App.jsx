@@ -4,7 +4,7 @@ import Background from "./components/Background.jsx";
 import Intro from "./components/Intro.jsx";
 import Game from "./components/Game.jsx";
 import Transition from "./components/Transition.jsx";
-import Landing from "./components/Landing.jsx";
+import Landing from "./components/landing/Landing.jsx";   // ← fixed path
 
 export default function App() {
   const [stage, setStage] = useState("intro"); // intro -> game -> transition -> landing
@@ -25,7 +25,9 @@ export default function App() {
           <Game key="game" onComplete={() => setStage("transition")} onSkip={() => setStage("landing")} />
         )}
         {stage === "transition" && <Transition key="transition" onComplete={() => setStage("landing")} />}
-        {stage === "landing" && <Landing key="landing" onReturnToIntro={() => setStage("intro")} />}
+        {stage === "landing" && (
+          <Landing key="landing" onReturnToIntro={() => setStage("intro")} />
+        )}
       </AnimatePresence>
     </div>
   );
