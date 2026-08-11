@@ -25,7 +25,7 @@ export default function App() {
           <Game key="game" onComplete={() => setStage("transition")} onSkip={() => setStage("landing")} />
         )}
         {stage === "transition" && <Transition key="transition" onComplete={() => setStage("landing")} />}
-        {stage === "landing" && <Landing key="landing" />}
+        {stage === "landing" && <Landing key="landing" onReturnToIntro={() => setStage("intro")} />}
       </AnimatePresence>
     </div>
   );

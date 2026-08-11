@@ -473,6 +473,22 @@ a {
   border-color: rgba(194, 36, 47, 0.45);
 }
 
+.hx-card--glitchy:hover {
+  animation: hx-card-glitch 0.35s steps(3) 1;
+}
+@keyframes hx-card-glitch {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 1px); filter: hue-rotate(8deg); }
+  50% { transform: translate(2px, -1px); filter: hue-rotate(-8deg); }
+  75% { transform: translate(-1px, 0); }
+  100% { transform: translate(0, 0); filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hx-card--glitchy:hover {
+    animation: none !important;
+  }
+}
+
 .hx-btn {
   font-family: "JetBrains Mono", monospace;
   letter-spacing: 0.08em;
